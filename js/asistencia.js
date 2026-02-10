@@ -79,7 +79,6 @@ async function updateAttendanceProgress() {
 
         const ref = collection(db, "users", user.uid, "asistencias");
         const snap = await getDocs(ref);
-
         const total = snap.size;
 
         let count = total % 5;
@@ -88,13 +87,12 @@ async function updateAttendanceProgress() {
         }
 
         const percent = (count / 5) * 100;
-
         const text = document.getElementById("asistenciaTexto");
         const bar = document.getElementById("asistenciaBar");
 
         text.textContent = `${count} / 5`;
         bar.style.width = `${percent}%`;
-        bar.textContent = `${Math.round(percent)}%`;
+        bar.textContent = `${total} XP`;
 
         bar.classList.remove("bg-success", "bg-warning");
 

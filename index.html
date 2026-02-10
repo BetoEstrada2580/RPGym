@@ -277,46 +277,104 @@
         </div>
 
         <!-- FUERZA -->
-        <div id="view-fuerza" class="d-none px-2 px-md-5">
-            <div class="card p-3 mb-3">
-                <h5>
-                    <i class="fa-solid fa-dumbbell me-2 text-warning"></i>
-                    Progreso de Fuerza
-                </h5>
-
-                <p class="mb-1">
-                    Nivel de fuerza:
-                    <strong id="fuerzaNivel">Nivel 1</strong>
-                </p>
-
-                <div class="progress">
-                    <div
-                        id="fuerzaBar"
-                        class="progress-bar bg-warning text-dark"
-                        style="width: 0%"
-                    >
-                        0%
+        <div id="view-fuerza" class="container mt-4 d-none">
+            <!-- HEADER -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="row w-100">
+                    <div class="col-12">
+                        <h4 class="mb-0 text-center">
+                            <i
+                                class="fa-solid fa-dumbbell me-2 text-primary"
+                            ></i>
+                            Progreso de Fuerza
+                        </h4>
+                    </div>
+                    <div class="col-12 text-center">
+                        <button
+                            id="btnAddExercise"
+                            class="btn btn-primary mt-2"
+                            type="button"
+                        >
+                            <i class="fa-solid fa-plus me-1"></i>
+                            Agregar ejercicio
+                        </button>
                     </div>
                 </div>
             </div>
-            <div class="card p-3 mb-2">
-                <h6 class="mb-2">
-                    <i class="fa-solid fa-fire me-2"></i>
-                    Press banca
-                </h6>
 
-                <p class="mb-1">
-                    Peso actual:
-                    <strong id="bancaPeso">60 kg</strong>
-                </p>
+            <!-- LISTA DE EJERCICIOS -->
+            <div id="exerciseList" class="row g-3">
+                <!-- Cards dinámicas desde fuerza.js -->
+            </div>
+        </div>
 
-                <div class="d-flex gap-2">
-                    <button class="btn btn-sm btn-outline-warning">
-                        +2.5 kg
-                    </button>
-                    <button class="btn btn-sm btn-outline-warning">
-                        +5 kg
-                    </button>
+        <!-- =========================
+            MODAL: AGREGAR EJERCICIO
+        ========================= -->
+        <div
+            class="modal fade"
+            id="modalExercise"
+            tabindex="-1"
+            aria-hidden="true"
+        >
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <!-- HEADER -->
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fa-solid fa-dumbbell me-2"></i>
+                            Agregar ejercicio
+                        </h5>
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Cerrar"
+                        ></button>
+                    </div>
+
+                    <!-- BODY -->
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label"> Ejercicio </label>
+                            <select id="exerciseSelect" class="form-select">
+                                <!-- Opciones desde cat_ejercicios -->
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Peso inicial (kg)
+                            </label>
+                            <input
+                                type="number"
+                                id="exerciseWeight"
+                                class="form-control"
+                                placeholder="Ej. 40"
+                                min="0"
+                                step="0.5"
+                            />
+                        </div>
+                    </div>
+
+                    <!-- FOOTER -->
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal"
+                        >
+                            Cancelar
+                        </button>
+
+                        <button
+                            type="button"
+                            id="btnSaveExercise"
+                            class="btn btn-primary"
+                        >
+                            Guardar ejercicio
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
