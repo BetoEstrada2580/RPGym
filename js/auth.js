@@ -1,4 +1,5 @@
 import { auth, provider, db } from "./firebase.js";
+import { loadDashboard } from "./base.js";
 
 import {
     signInWithPopup,
@@ -69,7 +70,7 @@ onAuthStateChanged(auth, async (user) => {
 
         navbar.classList.remove("d-none");
         goTo("dashboard");
-        // await loadDashboard();
+        await loadDashboard();
     } catch (error) {
         console.error("🔥 Error Firestore:", error);
         alert("Error conectando con la base de datos");

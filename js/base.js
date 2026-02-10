@@ -14,9 +14,8 @@ navDashboard.addEventListener("click", async () => {
     await loadDashboard();
 });
 
-async function loadDashboard() {
+export async function loadDashboard() {
     const user = auth.currentUser;
-    console.log(auth.currentUser);
     if (!user) return;
 
     // 🔹 Datos del usuario
@@ -25,8 +24,6 @@ async function loadDashboard() {
 
     if (userSnap.exists()) {
         const d = userSnap.data();
-
-        console.log(d);
 
         const { xpAsistencia, xpFuerza, xpPeso } = d || {};
 
