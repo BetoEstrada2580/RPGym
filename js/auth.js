@@ -177,7 +177,6 @@ async function ensureUserInFirestore(user) {
         xpAsistencia: 0,
         xpFuerza: 0,
         xpPeso: 0,
-        asistenciaActual: false,
         asistenciasTotales: 0,
         pesoInicial: null,
         pesoActual: null,

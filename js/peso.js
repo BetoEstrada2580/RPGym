@@ -18,7 +18,6 @@ import { db } from "./firebase.js";
 const btn = document.getElementById("btnRegistrarPeso");
 const navPeso = document.getElementById("navPeso");
 const table = document.getElementById("weightTable");
-const bar = document.getElementById("weightBar");
 
 const objetivoInput = document.getElementById("pesoObjetivoInput");
 const btnGuardarObjetivo = document.getElementById("btnGuardarPesoObjetivo");

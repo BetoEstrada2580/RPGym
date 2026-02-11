@@ -212,6 +212,18 @@
                     </div>
                 </div>
 
+                <!-- Nivel fuerza actual -->
+                <div class="col-md-3">
+                    <div class="card p-3 text-center">
+                        <i
+                            class="fa-solid fa-dumbbell fa-2x text-primary mb-2"
+                        ></i>
+
+                        <h6>Nivel actual de fuerza:</h6>
+                        <strong id="dashNivelFuerza">-</strong>
+                    </div>
+                </div>
+
                 <!-- Peso inicial -->
                 <div class="col-md-3">
                     <div class="card p-3 text-center">
@@ -236,7 +248,7 @@
             </div>
         </div>
 
-        <!-- ASISTENCIA -->
+        <!-- ================= ASISTENCIA ================= -->
         <div id="view-asistencia" class="d-none px-2 px-md-5">
             <div class="card p-3 mb-3" id="card-asistencia">
                 <h5 class="mb-3">
@@ -276,7 +288,7 @@
             </div>
         </div>
 
-        <!-- FUERZA -->
+        <!-- ================= FUERZA ================= -->
         <div id="view-fuerza" class="container mt-4 d-none">
             <!-- HEADER -->
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -298,6 +310,29 @@
                             <i class="fa-solid fa-plus me-1"></i>
                             Agregar ejercicio
                         </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MÉTRICAS DE FUERZA -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="card p-3 border-primary">
+                        <h6 class="mb-1">🏋️ Nivel de Fuerza</h6>
+                        <p class="mb-0">
+                            Nivel actual:
+                            <strong id="nivelFuerzaBase">0</strong>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card p-3 border-success">
+                        <h6 class="mb-1">📈 Progreso de Fuerza</h6>
+                        <p class="mb-0">
+                            Nivel de progreso:
+                            <strong id="nivelFuerzaProgreso">0</strong>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -434,11 +469,139 @@
                 <tbody id="weightTable"></tbody>
             </table>
         </div>
+
+        <!-- ========================= VISTA: PREMIOS ========================= -->
+        <div id="view-premios" class="container mt-4 d-none">
+            <!-- HEADER -->
+            <div class="mb-4">
+                <h4 class="mb-1">
+                    <i class="fa-solid fa-gift me-2 text-warning"></i>
+                    Premios
+                </h4>
+                <p class="text-muted mb-0">
+                    Recompensas reales que te has ganado con tu esfuerzo
+                </p>
+            </div>
+
+            <!-- RESUMEN POR CATEGORÍA -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card p-3 h-100 border-primary">
+                        <h6>
+                            <i class="fa-solid fa-calendar-check me-2"></i>
+                            Asistencia
+                        </h6>
+                        <p class="mb-1">
+                            Nivel actual:
+                            <strong id="nivelAsistencia">–</strong>
+                        </p>
+                        <p class="mb-0 text-muted">
+                            Próximo premio:
+                            <span id="nextRewardAsistencia">–</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card p-3 h-100 border-success">
+                        <h6>
+                            <i class="fa-solid fa-dumbbell me-2"></i>
+                            Fuerza
+                        </h6>
+                        <p class="mb-1">
+                            Nivel actual: <strong id="nivelFuerza">–</strong>
+                        </p>
+                        <p class="mb-0 text-muted">
+                            Próximo premio:
+                            <span id="nextRewardFuerza">–</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card p-3 h-100 border-warning">
+                        <h6>
+                            <i class="fa-solid fa-weight-scale me-2"></i>
+                            Peso
+                        </h6>
+                        <p class="mb-1">
+                            Nivel actual: <strong id="nivelPeso">–</strong>
+                        </p>
+                        <p class="mb-0 text-muted">
+                            Próximo premio:
+                            <span id="nextRewardPeso">–</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HISTORIAL DE PREMIOS -->
+            <div class="card p-3">
+                <h5 class="mb-3">
+                    <i class="fa-solid fa-trophy me-2 text-warning"></i>
+                    Historial de premios
+                </h5>
+
+                <div id="rewardHistory">
+                    <p class="text-muted mb-0">
+                        Aún no has registrado ningún premio.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================= MODAL: PREMIO DESBLOQUEADO ========================= -->
+        <div
+            class="modal fade"
+            id="rewardModal"
+            tabindex="-1"
+            data-bs-backdrop="static"
+            data-bs-keyboard="false"
+        >
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <!-- HEADER -->
+                    <div class="modal-header">
+                        <h5 class="modal-title">🎉 Premio desbloqueado</h5>
+                    </div>
+
+                    <!-- BODY -->
+                    <div class="modal-body">
+                        <p id="rewardInfo" class="mb-3">
+                            <!-- Texto dinámico -->
+                        </p>
+
+                        <label class="form-label">
+                            ¿Qué recompensa te diste?
+                        </label>
+
+                        <input
+                            type="text"
+                            id="rewardName"
+                            class="form-control"
+                            placeholder="Ej. Audífonos nuevos"
+                        />
+                    </div>
+
+                    <!-- FOOTER -->
+                    <div class="modal-footer">
+                        <button
+                            id="btnSaveReward"
+                            class="btn btn-success w-100"
+                        >
+                            Guardar premio
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <script type="module" src="js/firebase.js"></script>
         <script type="module" src="js/auth.js"></script>
         <script type="module" src="js/base.js"></script>
         <script type="module" src="js/asistencia.js"></script>
         <script type="module" src="js/fuerza.js"></script>
         <script type="module" src="js/peso.js"></script>
+        <script type="module" src="js/premios.js"></script>
     </body>
 </html>

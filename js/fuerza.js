@@ -1,7 +1,4 @@
-// fuerza.js
-
 import { auth, db } from "./firebase.js";
-
 import {
     collection,
     getDocs,
@@ -11,35 +8,33 @@ import {
     updateDoc,
     addDoc,
     serverTimestamp,
-    increment,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { checkRewards } from "./premios.js";
 
-// -----------------------------
-// DOM
-// -----------------------------
+/* =====================================================
+   CONFIGURACIÓN
+===================================================== */
+export const INCREMENTO_PESO = 2.5;
+const KG_POR_NIVEL_PROGRESO = 5;
+const XP_POR_INCREMENTO = 1;
+const XP_PARA_SUBIR_NIVEL = 10;
+
+/* =====================================================
+   DOM
+===================================================== */
 const btnAddExercise = document.getElementById("btnAddExercise");
 const btnSaveExercise = document.getElementById("btnSaveExercise");
 const exerciseList = document.getElementById("exerciseList");
 const exerciseSelect = document.getElementById("exerciseSelect");
 const exerciseWeight = document.getElementById("exerciseWeight");
 
-// -----------------------------
-// MODAL
-// -----------------------------
 const modalExercise = new bootstrap.Modal(
     document.getElementById("modalExercise")
 );
 
-// -----------------------------
-// CONFIG RPG
-// -----------------------------
-const INCREMENTO_PESO = 2.5;
-const XP_POR_INCREMENTO = 1;
-const XP_PARA_SUBIR_NIVEL = 10;
-
-// -----------------------------
-// EVENTOS
-// -----------------------------
+/* =====================================================
+   EVENTOS
+===================================================== */
 btnAddExercise?.addEventListener("click", async () => {
     await loadExerciseCatalog();
     exerciseWeight.value = "";
@@ -50,9 +45,9 @@ btnSaveExercise?.addEventListener("click", async () => {
     await saveUserExercise();
 });
 
-// -----------------------------
-// CARGAR CATÁLOGO SIN REPETIR
-// -----------------------------
+/* =====================================================
+   CATÁLOGO DE EJERCICIOS
+===================================================== */
 async function loadExerciseCatalog() {
     const user = auth.currentUser;
     if (!user) return;
@@ -63,11 +58,9 @@ async function loadExerciseCatalog() {
     );
 
     const usados = new Set(userSnap.docs.map((d) => d.id));
-
     exerciseSelect.innerHTML = "";
 
     catSnap.forEach((docSnap) => {
-        console.log(docSnap);
         if (!usados.has(docSnap.id)) {
             const opt = document.createElement("option");
             opt.value = docSnap.id;
@@ -75,18 +68,11 @@ async function loadExerciseCatalog() {
             exerciseSelect.appendChild(opt);
         }
     });
-
-    if (!exerciseSelect.children.length) {
-        const opt = document.createElement("option");
-        opt.textContent = "No hay ejercicios disponibles";
-        opt.disabled = true;
-        exerciseSelect.appendChild(opt);
-    }
 }
 
-// -----------------------------
-// GUARDAR EJERCICIO DEL USUARIO
-// -----------------------------
+/* =====================================================
+   GUARDAR EJERCICIO (SIN XP GLOBAL)
+===================================================== */
 async function saveUserExercise() {
     const user = auth.currentUser;
     if (!user) return;
@@ -99,10 +85,9 @@ async function saveUserExercise() {
         return;
     }
 
-    const exerciseRef = doc(db, "users", user.uid, "ejercicios", ejercicioId);
+    const ref = doc(db, "users", user.uid, "ejercicios", ejercicioId);
 
-    // Evitar duplicados
-    const snap = await getDoc(exerciseRef);
+    const snap = await getDoc(ref);
     if (snap.exists()) {
         alert("Este ejercicio ya fue agregado");
         return;
@@ -118,10 +103,7 @@ async function saveUserExercise() {
 
     const xpRestante = xpInicialTotal % XP_PARA_SUBIR_NIVEL;
 
-    // -----------------------------
-    // GUARDAR EJERCICIO
-    // -----------------------------
-    await setDoc(exerciseRef, {
+    await setDoc(ref, {
         nombre: exerciseSelect.selectedOptions[0].text,
         pesoInicial: peso,
         pesoActual: peso,
@@ -130,23 +112,47 @@ async function saveUserExercise() {
         createdAt: serverTimestamp(),
     });
 
-    // -----------------------------
-    // SUMAR XP GLOBAL DE FUERZA
-    // -----------------------------
-    const userRef = doc(db, "users", user.uid);
-
-    await updateDoc(userRef, {
-        xpFuerza: increment(xpInicialTotal),
-    });
-
     modalExercise.hide();
     await loadUserExercises();
 }
 
-// -----------------------------
-// CARGAR EJERCICIOS DEL USUARIO
-// -----------------------------
-export async function loadUserExercises() {
+/* =====================================================
+   CÁLCULO DE MÉTRICAS DE FUERZA
+===================================================== */
+
+// 🏋️ Nivel Base (fuerza actual)
+export function calcularNivelBase(ejercicios) {
+    if (!ejercicios.length) return 0;
+
+    const suma = ejercicios.reduce((acc, e) => acc + e.pesoActual, 0);
+
+    const promedio = suma / ejercicios.length;
+
+    if (promedio < 25) return 1;
+    if (promedio < 40) return 2;
+    if (promedio < 60) return 3;
+    if (promedio < 80) return 4;
+    if (promedio < 100) return 5;
+
+    return Math.floor(promedio / 20) + 2;
+}
+
+// 📈 Progreso (para premios)
+function calcularNivelProgreso(ejercicios) {
+    let progresoKg = 0;
+
+    ejercicios.forEach((e) => {
+        const diff = e.pesoActual - e.pesoInicial;
+        if (diff > 0) progresoKg += diff;
+    });
+
+    return Math.floor(progresoKg / KG_POR_NIVEL_PROGRESO);
+}
+
+/* =====================================================
+   MOSTRAR EJERCICIOS + MÉTRICAS
+===================================================== */
+async function loadUserExercises() {
     const user = auth.currentUser;
     if (!user) return;
 
@@ -154,86 +160,124 @@ export async function loadUserExercises() {
 
     const snap = await getDocs(collection(db, "users", user.uid, "ejercicios"));
 
-    if (snap.empty) {
-        exerciseList.innerHTML = `
-        <div class="text-muted text-center">
-            Agrega tu primer ejercicio 💪
-        </div>
-    `;
+    const ejercicios = [];
+
+    snap.forEach((docSnap) => {
+        ejercicios.push({
+            id: docSnap.id,
+            ...docSnap.data(),
+        });
+    });
+
+    // -----------------------------
+    // SIN EJERCICIOS
+    // -----------------------------
+    if (!ejercicios.length) {
+        exerciseList.innerHTML =
+            "<p class='text-muted'>Agrega ejercicios para comenzar</p>";
+
+        const elBase = document.getElementById("nivelFuerzaBase");
+        const elProgreso = document.getElementById("nivelFuerzaProgreso");
+
+        if (elBase) elBase.textContent = "0";
+        if (elProgreso) elProgreso.textContent = "0";
+
         return;
     }
 
-    snap.forEach((docSnap) => {
-        const e = docSnap.data();
-        const xpPercent = Math.min((e.xp / XP_PARA_SUBIR_NIVEL) * 100, 100);
+    // -----------------------------
+    // MÉTRICAS GLOBALES
+    // -----------------------------
+    const nivelBase = calcularNivelBase(ejercicios);
+    const nivelProgreso = calcularNivelProgreso(ejercicios);
+
+    const elBase = document.getElementById("nivelFuerzaBase");
+    const elProgreso = document.getElementById("nivelFuerzaProgreso");
+
+    if (elBase) elBase.textContent = nivelBase;
+    if (elProgreso) elProgreso.textContent = nivelProgreso;
+
+    // -----------------------------
+    // RENDER EJERCICIOS (RPG)
+    // -----------------------------
+    ejercicios.forEach((e) => {
+        const xpActual = e.xp ?? 0;
+        const nivel = e.nivel ?? 1;
+
+        const xpPercent = Math.min((xpActual / XP_PARA_SUBIR_NIVEL) * 100, 100);
 
         exerciseList.innerHTML += `
-        <div class="col-md-6">
-            <div class="card p-3 h-100">
-            <h6 class="mb-1">${e.nombre}</h6>
+            <div class="col-md-6">
+                <div class="card p-3 h-100">
 
-            <p class="mb-1">
-                🏋️ ${e.pesoActual} kg
-            </p>
-            <p>
-                Nivel ${e.nivel}
-            </p>
+                    <h6 class="mb-1">${e.nombre}</h6>
 
-            <div class="progress mb-2">
-                <div
-                class="progress-bar bg-success"
-                style="width:${xpPercent}%"
-                >
-                    ${e.xp} XP
+                    <p class="mb-1">
+                        Peso inicial: ${e.pesoInicial} kg<br>
+                        Peso actual: <strong>${e.pesoActual} kg</strong>
+                    </p>
+
+                    <p class="mb-1">
+                        Nivel: <strong>${nivel}</strong>
+                    </p>
+
+                    <!-- BARRA XP RPG -->
+                    <div class="progress mb-2">
+                        <div
+                            class="progress-bar bg-success"
+                            style="width:${xpPercent}%"
+                        >
+                            ${xpActual} / ${XP_PARA_SUBIR_NIVEL}
+                        </div>
+                    </div>
+
+                    <button
+                        class="btn btn-sm btn-outline-success w-100"
+                        onclick="increaseWeight('${e.id}')"
+                    >
+                        + ${INCREMENTO_PESO} kg
+                    </button>
+
                 </div>
             </div>
-
-            <div class="d-flex gap-2">
-                <button
-                class="btn btn-sm btn-outline-success w-100"
-                onclick="increaseWeight('${docSnap.id}')"
-                >
-                + ${INCREMENTO_PESO} kg
-                </button>
-
-                <button
-                class="btn btn-sm btn-outline-secondary w-100"
-                onclick="viewExerciseHistory('${docSnap.id}')"
-                >
-                Historial
-                </button>
-            </div>
-            </div>
-        </div>
-    `;
+        `;
     });
 }
 
-// -----------------------------
-// INCREMENTAR PESO + HISTÓRICO
-// -----------------------------
+/* =====================================================
+   INCREMENTAR PESO (PROGRESO REAL)
+===================================================== */
 window.increaseWeight = async function (ejercicioId) {
     const user = auth.currentUser;
     if (!user) return;
 
-    // Referencia al ejercicio
     const exerciseRef = doc(db, "users", user.uid, "ejercicios", ejercicioId);
 
-    const snap = await getDoc(exerciseRef);
-    if (!snap.exists()) return;
-
-    const data = snap.data();
+    const userRef = doc(db, "users", user.uid);
 
     // -----------------------------
-    // CÁLCULO DEL NUEVO PESO
+    // OBTENER DATOS ACTUALES
     // -----------------------------
-    const nuevoPeso = data.pesoActual + INCREMENTO_PESO;
+    const exerciseSnap = await getDoc(exerciseRef);
+    const userSnap = await getDoc(userRef);
+
+    if (!exerciseSnap.exists() || !userSnap.exists()) return;
+
+    const exercise = exerciseSnap.data();
+    const userData = userSnap.data();
 
     // -----------------------------
-    // CÁLCULO RPG DE XP / NIVEL
+    // NUEVO PESO
     // -----------------------------
-    let xp = data.xp + XP_POR_INCREMENTO;
-    let nivel = data.nivel;
+    const nuevoPeso = exercise.pesoActual + INCREMENTO_PESO;
+
+    // -----------------------------
+    // RPG INDIVIDUAL (EJERCICIO)
+    // -----------------------------
+    let xp = exercise.xp ?? 0;
+    let nivel = exercise.nivel ?? 1;
+
+    xp += XP_POR_INCREMENTO;
 
     if (xp >= XP_PARA_SUBIR_NIVEL) {
         xp = xp % XP_PARA_SUBIR_NIVEL;
@@ -241,56 +285,38 @@ window.increaseWeight = async function (ejercicioId) {
     }
 
     // -----------------------------
+    // PROGRESO GLOBAL DE FUERZA
+    // -----------------------------
+    const progresoAnteriorKg = userData.fuerzaProgresoKg ?? 0;
+    const progresoNuevoKg = progresoAnteriorKg + INCREMENTO_PESO;
+
+    const nivelProgresoAnterior = userData.fuerzaNivelProgreso ?? 0;
+
+    const nivelProgresoNuevo = Math.floor(
+        progresoNuevoKg / KG_POR_NIVEL_PROGRESO
+    );
+
+    // -----------------------------
     // ACTUALIZAR EJERCICIO
     // -----------------------------
     await updateDoc(exerciseRef, {
         pesoActual: nuevoPeso,
-        xp,
-        nivel,
+        xp: xp,
+        nivel: nivel,
     });
 
     // -----------------------------
-    // GUARDAR HISTÓRICO
+    // ACTUALIZAR USUARIO (PROGRESO)
     // -----------------------------
-    const histRef = collection(
-        db,
-        "users",
-        user.uid,
-        "ejercicios",
-        ejercicioId,
-        "historial"
-    );
-
-    await addDoc(histRef, {
-        pesoAnterior: data.pesoActual,
-        pesoNuevo: nuevoPeso,
-        incremento: INCREMENTO_PESO,
-        fecha: serverTimestamp(),
-    });
-
-    // -----------------------------
-    // SUMAR XP GLOBAL DE FUERZA
-    // -----------------------------
-    const userRef = doc(db, "users", user.uid);
-
     await updateDoc(userRef, {
-        xpFuerza: increment(XP_POR_INCREMENTO),
+        fuerzaProgresoKg: progresoNuevoKg,
+        fuerzaNivelProgreso: nivelProgresoNuevo,
     });
 
     // -----------------------------
-    // REFRESCAR UI
+    // HISTÓRICO
     // -----------------------------
-    await loadUserExercises();
-};
-
-// -----------------------------
-// VER HISTORIAL DEL EJERCICIO
-// -----------------------------
-window.viewExerciseHistory = async function (ejercicioId) {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    const snap = await getDocs(
+    await addDoc(
         collection(
             db,
             "users",
@@ -298,28 +324,30 @@ window.viewExerciseHistory = async function (ejercicioId) {
             "ejercicios",
             ejercicioId,
             "historial"
-        )
+        ),
+        {
+            pesoAnterior: exercise.pesoActual,
+            pesoNuevo: nuevoPeso,
+            incremento: INCREMENTO_PESO,
+            fecha: serverTimestamp(),
+        }
     );
 
-    if (snap.empty) {
-        alert("Este ejercicio aún no tiene historial");
-        return;
+    // -----------------------------
+    // PREMIOS (SOLO SI SUBIÓ NIVEL)
+    // -----------------------------
+    if (nivelProgresoNuevo > nivelProgresoAnterior) {
+        // aquí llamas a premios.js
+        checkRewards("fuerza");
     }
 
-    let texto = "Historial de cambios:\n\n";
-
-    snap.forEach((d) => {
-        const h = d.data();
-        const fecha = h.fecha?.toDate().toLocaleDateString() ?? "";
-        texto += `📅 ${fecha}: ${h.pesoAnterior} → ${h.pesoNuevo} kg\n`;
-    });
-
-    alert(texto);
+    await loadUserExercises();
 };
 
 const navFuerza = document.getElementById("navFuerza");
 
-navFuerza.addEventListener("click", async () => {
-    await loadUserExercises();
+navFuerza?.addEventListener("click", async (e) => {
+    e.preventDefault();
     goTo("fuerza");
+    await loadUserExercises();
 });
