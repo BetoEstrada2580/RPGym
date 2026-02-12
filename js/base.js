@@ -38,8 +38,8 @@ export async function loadDashboard() {
         document.getElementById("xpPeso").textContent = xpPeso ?? 0;
 
         document.getElementById("dashXP").textContent =
-            (xpAsistencia ?? 0) +
-            (parseInt(fuerzaProgresoKg) ?? 0) +
+            (parseInt(xpAsistencia) ?? 0) +
+            (parseInt(xpFuerzaVisual) ?? 0) +
             (parseInt(xpPeso) ?? 0);
 
         //* Nivel fuerza
