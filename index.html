@@ -22,28 +22,7 @@
             crossorigin="anonymous"
         ></script>
 
-        <style>
-            .progress {
-                height: 22px;
-            }
-
-            .progress-bar {
-                font-weight: bold;
-            }
-
-            #view-login h2 {
-                letter-spacing: 1px;
-            }
-
-            #authCard.register-mode {
-                border-top: 3px solid #0d6efd;
-                padding-top: 10px;
-            }
-
-            #authCard.register-mode h5 {
-                color: #0d6efd;
-            }
-        </style>
+        <link href="/css/style.css" rel="stylesheet" />
     </head>
 
     <body class="d-flex flex-column min-vh-100">
@@ -256,6 +235,11 @@
                     Asistencia semanal
                 </h5>
 
+                <h5 class="mb-3">
+                    Nivel actual:
+                    <span class="fw-bold" id="nivel_asistencia"></span>
+                </h5>
+
                 <p class="mb-1">
                     Progreso de misión:
                     <strong id="asistenciaTexto">0 / 5</strong>
@@ -283,8 +267,21 @@
                     id="asistenciaYaRegistrada"
                     class="text-muted text-center d-none mt-2"
                 >
-                    ✅ Asistencia de hoy ya registrada
+                    ✅ La asistencia de hoy ya fue registrada
                 </div>
+            </div>
+
+            <div class="card p-3 mb-3">
+                <h5 class="mb-3">
+                    <i class="fa-regular fa-calendar me-2 text-success"></i>
+                    Actividad del mes
+                </h5>
+                <div id="heatmapContainer" class="d-flex flex-wrap"></div>
+            </div>
+
+            <div class="card p-3 mb-3">
+                <h5 class="mb-3">Historial de asistencias</h5>
+                <div id="historialLog"></div>
             </div>
         </div>
 

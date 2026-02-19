@@ -14,6 +14,7 @@ import {
     CONFIGURACIÓN BASE
 ===================================================== */
 const XP_PARA_SUBIR_NIVEL = 10;
+const XP_PARA_SUBIR_NIVEL_ASISTENCIA = 5;
 const KG_POR_NIVEL_PROGRESO = 5;
 
 /* =====================================================
@@ -40,7 +41,7 @@ let currentReward = null;
 function premioAsistencia(nivel) {
     if (nivel >= 8 && nivel % 8 === 0) return "grande";
     if (nivel === 4) return "mediano";
-    if (nivel >= 1) return "pequeño";
+    if (nivel === 2) return "pequeño";
     return null;
 }
 
@@ -63,6 +64,10 @@ function premioPeso(nivel) {
 ===================================================== */
 function calcularNivel(xp) {
     return Math.floor(xp / XP_PARA_SUBIR_NIVEL) + 1;
+}
+
+function calcularNivelAsistencia(xp) {
+    return Math.floor(xp / XP_PARA_SUBIR_NIVEL_ASISTENCIA) + 1;
 }
 
 function getRewardByCategory(category, nivel) {
@@ -114,7 +119,7 @@ async function loadPremiosView() {
     // ASISTENCIA (sigue por XP)
     // -----------------------------
     const xpAsistencia = data.xpAsistencia ?? 0;
-    const nivelAsistencia = calcularNivel(xpAsistencia);
+    const nivelAsistencia = calcularNivelAsistencia(xpAsistencia);
 
     // -----------------------------
     // PESO CORPORAL (sigue por XP)
