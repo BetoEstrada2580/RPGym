@@ -140,7 +140,6 @@ async function loadUserWeightData() {
 
 function updateWeightBar(data) {
     if (!data?.pesoInicial || !data?.pesoActual) return;
-
     const inicial = data.pesoInicial;
     const actual = data.pesoActual;
     const objetivo = data.pesoObjetivo;
